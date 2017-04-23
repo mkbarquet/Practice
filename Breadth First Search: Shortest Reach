@@ -1,0 +1,213 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int queries = Convert.ToInt32(Console.ReadLine());
+            string[] line = new string [queries];
+            const int w = 6;
+            const int inf = 9999;
+            for (int q = 0; q < queries; q++)
+            {
+                string[] bounds = Console.ReadLine().Split(' ');
+                int totalNodes = Int32.Parse(bounds[0]); //Known as N
+                int totalEdges = Int32.Parse(bounds[1]); //Known as M
+                LinkedList[] graph = new LinkedList[totalNodes];
+                for (int i = 0; i < totalNodes; i++)
+                {
+                    graph[i] = new LinkedList(i + 1);
+                }
+                for (int i = 0; i < totalEdges; i++)
+                {
+                    string[] edge = Console.ReadLine().Split(' ');
+                    int v1 = Int32.Parse(edge[0]); //Known as N
+                    int v2 = Int32.Parse(edge[1]); //Known as M
+                    graph[v1 - 1].AddAtLast(v2);
+                    graph[v2 - 1].AddAtLast(v1);
+                }
+                Node start = graph[Convert.ToInt32(Console.ReadLine()) - 1].GetHead();
+                
+                Query q1 = new Query();
+                q1.BFS(graph, start);
+                line[q] = "";
+                for (int i = 0; i < graph.Count(); i++)
+                {
+                    int distance = 0;
+                    LinkedList l = graph[i];
+                    distance = l.GetHead().Distance;
+                    if (distance == 0) continue;
+                    else if (distance == inf) distance = -1;
+                    else distance = distance * w;
+                    line[q] = line[q] + distance + " ";
+                }                
+                
+            }
+            foreach (string l in line)
+            {
+                Console.WriteLine(l);
+            }
+
+
+            Console.ReadKey();
+
+        }
+        public class Node
+        {
+            public Node Next;
+            public object Value;
+            public string Color;
+            public int Distance;
+            public Node Parent;
+        }
+        public class LinkedList
+        {
+            private Node head;
+            private Node current;//This will have latest node
+            public int Count;
+            public LinkedList(object data)
+            {
+                head = new Node();
+                head.Value = data;
+                current = head;
+                Count++;
+            }
+            public LinkedList(Node data)
+            {
+                head = new Node();
+                head = data;
+                current = head;
+                Count++;
+            }
+            public void AddAtLast(object data)
+            {
+                Node newNode = new Node();
+                newNode.Value = data;
+                current.Next = newNode;
+                current = newNode;
+                Count++;
+            }
+            public void AddAtLast(Node data)
+            {
+                Node newNode = new Node();
+                newNode = data;
+                current.Next = newNode;
+                current = newNode;
+                Count++;
+            }
+            public void RemoveFromStart()
+            {
+                if (Count > 0)
+                {
+                    head.Next = head.Next.Next;
+                    Count--;
+                }
+                else
+                {
+                    Console.WriteLine("No element exist in this linked list.");
+                }
+            }
+            public Node[] GetAllNodes()
+            {
+                //Traverse from head
+                int i = 0;
+                Node[] Nodes = new Node[Count];
+                Node curr = head;
+                Nodes[i] = curr;
+                while (curr.Next != null)
+                {
+                    i++;
+                    curr = curr.Next;
+                    Nodes[i] = curr;
+                }
+                return Nodes;
+            }
+            public Node GetHead()
+            {
+                return head;
+            }
+            public Node GetCurrent()
+            {
+                return current;
+            }
+            /// <summary>
+            /// Traverse from head and print all nodes value
+            /// </summary>
+            public void PrintAllNodes()
+            {
+                //Traverse from head
+                Console.Write("Head ->");
+                Node curr = head;
+                while (curr.Next != null)
+                {
+                    curr = curr.Next;
+                    Console.Write(curr.Value);
+                    Console.Write("->");
+                }
+                Console.Write("NULL");
+            }           
+        }
+        public class Query
+        {
+            public void BFS(LinkedList[] G, Node s)
+            {
+                for (int i = 0; i < G.Count(); i++)
+                {
+                    if (G[i].GetHead().Value == s.Value)
+                    {
+                        G[i].GetHead().Color = "Gray";
+                        G[i].GetHead().Distance = 0;
+                        G[i].GetHead().Parent = null;
+                    }
+                    else
+                    {
+                        G[i].GetHead().Color = "White";
+                        G[i].GetHead().Distance = 9999;
+                        G[i].GetHead().Parent = null;
+                    }                    
+                }
+                SortedList<int, Node> Q = new SortedList<int, Node>();
+                Q.Add(0, s);
+                while (Q.Count > 0)
+                {
+                    Node u = Q.First().Value;
+                    Q.Remove(Q.First().Key);
+                    Node[] Adj = G[Convert.ToInt32(u.Value) - 1].GetAllNodes();
+                    for (int i = 0; i < Adj.Count(); i++)
+                    {
+                        Adj[i] = G[Convert.ToInt32(Adj[i].Value) - 1].GetHead();
+                    }
+                    foreach (Node v in Adj)
+                    {
+                        if (v.Color == "White")
+                        {
+                            v.Color = "Gray";
+                            v.Distance = u.Distance + 1;
+                            v.Parent = u;
+                            if (Q.Count() > 0)
+                            {
+                                Q.Add(Q.Last().Key + 1, v);
+                            }
+                            else
+                            {
+                                Q.Add(0, v);
+                            }                            
+                        }
+                    }
+                    u.Color = "Black";
+                }
+               
+            }
+
+        }
+
+
+
+    }
+}
